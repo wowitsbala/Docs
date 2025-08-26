@@ -1,1 +1,39 @@
-Git Status -- To check the status 
+--Git Workflow
+Working directoy -- where you make changes
+Git Add -- Stage changes
+Git Commit -- Save Changes to your repositoy
+Git Push -- Share changes with others 
+Git status -- check whats going on
+Git restore, Git reset, Git commit --Fix Mistakes 
+
+Git Status -- To check the status
+--Stagging (Create or Add)
+Git add <File Name> -- To stage (Add) a file
+Git add --all or -A to stage multiple files
+Git status -- to check staged files
+Git restore --staged <File Name> to unstage a file
+--Commit (Save)
+Git commit -m "message" -- Commit (save) staged (added) changes with the message
+Git commit -a -m --Commit all tracked changes (Skip Stagging)
+Git log -- to see the commit history
+--Tagging (Label)
+Git tag <tagname> -- Create a light weight tag
+Git tag -d <tagname> -- delete a tag
+Git tag -a <tagname> -m "message" -- create an annotated tag 
+Git tag <tagname> <commit-hash> --tag a specific commit
+Git tag --list tags
+Git show --show tag details
+Git push origin <tagname> --to push a single tag
+Git push --tags --to push all tags
+Git push origin --delete tag <tagname> -- delete tag form remote repo
+--Branch(Create a workspace without affecting the origin (Main))
+Git branch <branch name> --Create a new branch
+Git branch --list all branches
+Git checkout <branch name> to move from current branch to destination branch 
+Git checkout -b <branch name> created a new branch form master and changed to destination branch
+Git branch -d <branch name> delete a branch
+Git branch -m <old branch name> <new branch name>
+--Merge(Combine the changes from one branch to another)
+Git checkout master -- Step 1: switch to master
+Git merge < to be merged branch> -- Step 2: destination branch
+git merge --abort -- abort a merge
