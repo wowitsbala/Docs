@@ -43,3 +43,4 @@ Git branch -m <old branch name> <new branch name>
 Git checkout master -- Step 1: switch to master
 Git merge < to be merged branch> -- Step 2: destination branch
 git merge --abort -- abort a merge
+git pull -- update your local repo
