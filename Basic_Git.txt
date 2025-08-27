@@ -34,10 +34,10 @@ Git push origin --delete tag <tagname> -- delete tag form remote repo
 --Branch(Create a workspace without affecting the origin (Main))
 Git branch <branch name> --Create a new branch
 Git branch --list all branches
-Git checkout <branch name> to move from current branch to destination branch 
-Git checkout -b <branch name> created a new branch form master and changed to destination branch
-Git branch -d <branch name> delete a branch
-Git branch -m <old branch name> <new branch name>
+Git checkout <branch name> --to move from current branch to destination branch 
+Git checkout -b <branch name> --created a new branch form master and changed to destination branch
+Git branch -d <branch name> --delete a branch
+Git branch -m <old branch name> <new branch name> -- Branch Rename
 
 --Merge(Combine the changes from one branch to another)
 Git checkout master -- Step 1: switch to master
