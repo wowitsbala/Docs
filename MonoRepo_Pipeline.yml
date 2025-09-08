@@ -1,0 +1,129 @@
+pipeline:
+  name: Component Library Pipeline
+  identifier: component_library_pipeline
+  projectIdentifier: your_project_id # Replace
+  orgIdentifier: your_org_id # Replace
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: your_github_connector # Replace
+        repoName: your-monorepo-name
+        build: <+input> # Runtime input for branch/PR
+  stages:
+    - stage:
+        name: CI - Lint Test Build Sonar
+        identifier: ci_stage
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true # Cache Intelligence for Node.js/Turbo
+            paths: # Explicit paths for Turbo caches
+              - /harness/node_modules
+              - /harness/packages/*/node_modules
+              - /harness/.turbo
+            key: cache-<+codebase.branch>-<+codebase.commitSha> # Per-branch/commit key
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: your_k8s_connector # Replace
+              namespace: harness-ci
+          execution:
+            steps:
+              - step:
+                  name: Install and Bootstrap
+                  identifier: install_bootstrap
+                  type: Run
+                  spec:
+                    connectorRef: account.None
+                    image: node:20
+                    shell: Sh
+                    command: |
+                      yarn install  # Or npm/pnpm
+                      lerna bootstrap  # Link packages if using Lerna
+                    envVariables:
+                      TURBO_TOKEN: <+secrets.getValue("turbo_token")>
+                      TURBO_TEAM: your-vercel-team-slug # Replace
+                      TURBO_REMOTE_ONLY: "true" # Remote cache in CI
+              - step:
+                  name: Run Turbo Tasks
+                  identifier: turbo_tasks
+                  type: Run
+                  spec:
+                    connectorRef: account.None
+                    image: node:20
+                    shell: Sh
+                    command: |
+                      npx turbo run lint test build
+              - step:
+                  name: SonarQube Scan
+                  identifier: sonarqube_scan
+                  type: SonarQube # Built-in step
+                  spec:
+                    mode: orchestration # Runs scanner in pipeline
+                    config: default
+                    target:
+                      name: component-library
+                      variant: <+codebase.branch>
+                    advanced:
+                      args:
+                        cli: -Dsonar.projectKey=component-library -Dsonar.sources=packages,apps
+                    authentication:
+                      access_token: <+secrets.getValue("sonar_token")>
+                      domain: https://sonar.yourcompany.com # Replace
+                    workspace:
+                      path: /harness
+        failureStrategies:
+          - onFailure:
+              errors: [AllErrors]
+              action: {type: Abort}
+    - stage:
+        name: CD - Deploy Storybook and Packages
+        identifier: cd_stage
+        type: Deployment # Or Custom for script-based
+        spec:
+          deploymentType: CustomDeployment # For script deploys
+          execution:
+            steps:
+              - step:
+                  name: Build and Deploy Storybook to S3
+                  identifier: deploy_storybook
+                  type: ShellScript
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          npx turbo run build --scope=storybook  # Build Storybook
+                          aws s3 sync apps/storybook/build/ s3://your-storybook-bucket/ --region us-east-1  # Replace bucket/region/path
+                    environmentVariables:
+                      AWS_ACCESS_KEY_ID: <+secrets.getValue("aws_access_key")>
+                      AWS_SECRET_ACCESS_KEY: <+secrets.getValue("aws_secret_key")>
+              - step:
+                  name: Publish Packages to npm
+                  identifier: publish_packages
+                  type: ShellScript
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+                          npx turbo run publish  # Or lerna publish
+                    environmentVariables:
+                      NPM_TOKEN: <+secrets.getValue("npm_token")>
+          environment:
+            environmentRef: production # Replace or create env
+            deployToAll: false
+            infrastructureDefinitions: [] # Custom deploy, no infra needed
+        failureStrategies:
+          - onFailure:
+              errors: [AllErrors]
+              action: {type: Abort}
+        when:
+          pipelineStatus: Success # Run after CI
