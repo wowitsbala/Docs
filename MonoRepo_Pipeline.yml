@@ -27,7 +27,7 @@ pipeline:
           infrastructure:
             type: KubernetesDirect
             spec:
-              connectorRef: your_k8s_connector # Replace
+              connectorRef: your_k8s_connector # Replacee
               namespace: harness-ci
           execution:
             steps:
